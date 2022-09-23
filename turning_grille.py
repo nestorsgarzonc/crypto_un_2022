@@ -2,31 +2,19 @@ from typing import List
 import numpy as np
 
 
-class Hole:
-    def __init__(self, row: int, column: int):
-        self.row = row
-        self.column = column
-
-    def __repr__(self):
-        return f"Hole({self.row}, {self.column})"
-
-    def __eq__(self, other):
-        return self.row == other.row and self.column == other.column
-
-    def __hash__(self):
-        return hash((self.row, self.column))
-
-
 class TurningGrille:
     def __init__(self):
-        self.holes: List[Hole] = []
+        pass
 
     def set_holes(self, number_holes: int) -> None:
+        self.number_holes = number_holes
+        self.holes_rot = np.zeros(
+            (self.matrix_size, self.matrix_size), dtype=str)
         for i in range(number_holes):
             print('Enter the coordinates of the hole #', i + 1)
             row = int(input('Row = '))
             column = int(input('Column = '))
-            self.holes.append(Hole(row, column))
+            self.holes_rot[row][column] = 'X'
 
     def set_matrix_size(self, size: int) -> None:
         self.matrix_size = size
@@ -38,6 +26,7 @@ class TurningGrille:
         joined_text = ''.join(splitted_text)
         self.text = joined_text
         arr_text = []
+        self.rotation_count = 0
         for i in range(0, len(self.text), self.matrix_size):
             arr_text.append(self.text[i:i + self.matrix_size])
         if len(arr_text[-1]) < self.matrix_size:
@@ -45,13 +34,25 @@ class TurningGrille:
         self.arr_text = arr_text
 
     def fill_matrix(self) -> None:
-        for i in range(len(self.holes)):
-            self.matrix[self.holes[i].row][self.holes[i].column] = self.text[i]
-        print(self.matrix)
+        counter = 0
+        for i in range(self.matrix_size):
+            for j in range(self.matrix_size):
+                if self.holes_rot[i][j] != '':
+                    text_to_add = self.text[(
+                        self.rotation_count*self.number_holes)+counter
+                    ]
+                    print(text_to_add, end='')
+                    self.holes_rot[i][j] = text_to_add
+                    counter += 1
+        self.holes_rot = np.rot90(self.holes_rot, self.rotation_count)
+        self.rotation_count += 1
+        self.matrix = np.core.defchararray.add(self.matrix, self.holes_rot)
+
 
 
 tg = TurningGrille()
-tg.set_holes(4)
 tg.set_matrix_size(4)
-tg.process_text("JIM ATTACKS AT DAWNN")
-tg.fill_matrix()
+tg.set_holes(4)
+tg.process_text("JIM ATTACKS AT DAWN")
+for i in range(4):
+    tg.fill_matrix()
