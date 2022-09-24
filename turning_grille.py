@@ -2,19 +2,37 @@ import numpy as np
 
 
 class TurningGrille:
-    def __init__(self, is_test=False):
-        self.is_test = is_test
+    def __init__(self):
+        self.start_program()
+
+    def start_program(self) -> None:
+        selected_mode = self.select_mode()
+        while selected_mode != 3:
+            if self.validate_options(selected_mode):
+                print("Invalid option")
+                selected_mode = self.select_mode()
+                continue
+            if selected_mode == 1:
+                self.encrypt()
+            elif selected_mode == 2:
+                self.decrypt()
+            selected_mode = self.select_mode()
+
+    def validate_options(self, option: int) -> bool:
+        return option < 1 or option > 3
+
+    def select_mode(self):
+        print("Select mode:")
+        print("1 - Encrypt")
+        print("2 - Decrypt")
+        print("3 - Exit")
+        mode = int(input(">> "))
+        return mode
 
     def set_holes(self, number_holes: int) -> None:
         self.number_holes = number_holes
         self.holes_rot = np.zeros(
             (self.matrix_size, self.matrix_size), dtype=str)
-        if self.is_test:
-            self.holes_rot[0][0] = 'X'
-            self.holes_rot[2][1] = 'X'
-            self.holes_rot[2][3] = 'X'
-            self.holes_rot[3][2] = 'X'
-            return
         for i in range(number_holes):
             print('Enter the coordinates of the hole #', i + 1)
             row = int(input('Row = '))
@@ -39,9 +57,9 @@ class TurningGrille:
         self.text = ''.join(arr_text)
         self.arr_text = arr_text
 
-    def fill_matrix(self) -> None:
+    def fill_matrix(self, orientation=1) -> None:
         counter = 0
-        number_rotations = min(1, self.rotation_count)
+        number_rotations = min(1, self.rotation_count)*orientation
         self.holes_rot = np.rot90(self.holes_rot, number_rotations)
         for i in range(self.matrix_size):
             for j in range(self.matrix_size):
@@ -68,8 +86,13 @@ class TurningGrille:
         self.set_holes(holes_number)
         text = input('Enter the text to encrypt: ')
         self.process_text(text)
+        orientation = int(
+            input('Enter the orientation of the grille (left 1 or right -1): '))
+        if orientation != 1 and orientation != -1:
+            print('Invalid orientation')
+            return
         for _ in range(4):
-            self.fill_matrix()
+            self.fill_matrix(orientation=orientation)
         print(self.numpy_arr_to_str(self.matrix))
 
     def fill_matrix_cipher(self):
@@ -79,9 +102,9 @@ class TurningGrille:
                 self.matrix[i][j] = self.text[counter]
                 counter += 1
 
-    def fill_matrix_dec(self) -> None:
+    def fill_matrix_dec(self, orientation=1) -> None:
         counter = 0
-        number_rotations = min(1, self.rotation_count)
+        number_rotations = min(1, self.rotation_count)*orientation
         self.holes_rot = np.rot90(self.holes_rot, number_rotations)
         for i in range(self.matrix_size):
             for j in range(self.matrix_size):
@@ -100,12 +123,16 @@ class TurningGrille:
         self.process_text(text)
         self.fill_matrix_cipher()
         plain_text = ''
+        orientation = int(
+            input('Enter the orientation of the grille (left 1 or right -1): '))
+        if orientation != 1 and orientation != -1:
+            print('Invalid orientation')
+            return
         for _ in range(4):
-            plain_text += self.fill_matrix_dec()
+            plain_text += self.fill_matrix_dec(orientation=orientation)
         print(plain_text)
 
 
 tg = TurningGrille()
-tg.decrypt()
 #
 # TESHN INCIG LSRGY LRIUS PITSA TLILM REENS ATTOG SIAWG IPVER TOTEH HVAEA XITDT UAIME RANPM TLHIE
